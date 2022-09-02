@@ -1,0 +1,107 @@
+﻿@page "/validators"
+
+<PageTitle>Development Utilities - Generate Validators</PageTitle>
+
+<div class="d-flex justify-content-between">
+    <h1 class="m-0 p-0">Development Utilities - Generate Validators</h1>
+    <div>
+        <button class="btn btn-outline-success" @onclick="@GenerateValidatorsCode">Generate</button>
+    </div>
+</div>
+
+<div class="d-flex align-items-center mt-3">
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="wantsStringChk" @bind="@WantsStrings">
+        <label class="form-check-label" for="wantsStringChk">
+            Incluir Strings
+        </label>
+    </div>
+    <div class="mx-3"></div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="wantsStringMlChk" @bind="@WantsStringMaxLength">
+        <label class="form-check-label" for="wantsStringMlChk">
+            Incluir Largo Máximo en Strings
+        </label>
+    </div>
+    @if(WantsStringMaxLength){
+        <div class="mx-3"></div>
+        <input @bind-value="@StringMaxLength" class="form-control form-control-sm w-25" type="number" placeholder="Núm Máximo" aria-label=".form-control-sm example">
+    }
+    <div class="mx-3"></div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="wantsIntChk" @bind="@WantsNumbers">
+        <label class="form-check-label" for="wantsIntChk">
+            Incluir Números
+        </label>
+    </div>
+    
+</div>
+
+<div class="row">
+    <div class="col-sm-6">
+        <label for="inputarea" class="form-label">Input</label>
+        <textarea @bind="@InputValue" id="inputarea" name="inputarea" style="resize: none; min-height: 70vh;" class="w-100 h-75 form-control"></textarea>
+    </div>
+    <div class="col-sm-6">
+        <label for="outputarea" class="form-label">Output</label>
+        <textarea readonly @bind="@OutputValue" id="outputarea" name="outputarea" style="resize: none; min-height: 70vh;" class="w-100 form-control"></textarea>
+    </div>
+</div>
+
+@code {
+    private string InputValue { get; set; } = String.Empty;
+    private string OutputValue { get; set; } = String.Empty;
+
+    private bool WantsStrings { get; set; } = true;
+    private bool WantsNumbers { get; set; } = true;
+    private bool WantsStringMaxLength { get; set; } = false;
+    private int StringMaxLength { get; set; } = 30;
+
+    private void GenerateValidatorsCode()
+    {
+        OutputValue = String.Empty;
+        var result = EntityParserHelper.ParseEntityInput(InputValue);
+        if (result.Any())
+        {
+            foreach (var entry in result)
+            {
+                if(WantsNumbers && IsNumber(entry.Item1)){
+                    OutputValue += $"RuleFor(p => p.{entry.Item2})" + System.Environment.NewLine
+                            + "\t.NotNull().NotEmpty().NotEqual(0).WithMessage(\"No puede estar vacío\");" + System.Environment.NewLine + System.Environment.NewLine;
+                }
+
+                if(WantsStrings && entry.Item1.Equals("string")){
+
+                    OutputValue += $"RuleFor(p => p.{entry.Item2})" + System.Environment.NewLine
+                            + "\t.NotNull().NotEmpty().WithMessage(\"No puede estar vacío\");" + System.Environment.NewLine;
+
+                    if(!WantsStringMaxLength){
+
+                        OutputValue += System.Environment.NewLine;
+
+                    }else{
+
+                        if (StringMaxLength.Equals(0)) StringMaxLength = 30;
+
+                        OutputValue += $"\t.MaximumLength({StringMaxLength}).WithMessage(\"No puede superar los {StringMaxLength} carácteres\");"
+                                   + System.Environment.NewLine + System.Environment.NewLine;
+
+                    }
+
+                }
+
+            }
+        }
+    }
+
+    private bool IsNumber(string FieldType){
+        switch(FieldType){
+            case "int": return true;
+            case "float": return true;
+            case "double": return true;
+            case "decimal": return true;
+            default: return false;
+        }
+    }
+
+}
