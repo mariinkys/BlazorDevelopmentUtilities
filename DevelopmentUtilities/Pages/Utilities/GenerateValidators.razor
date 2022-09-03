@@ -65,7 +65,7 @@
         {
             foreach (var entry in result)
             {
-                if(WantsNumbers && IsNumber(entry.Item1)){
+                if(WantsNumbers && UtilitiesHelper.IsNumber(entry.Item1)){
                     OutputValue += $"RuleFor(p => p.{entry.Item2})" + System.Environment.NewLine
                             + "\t.NotNull().NotEmpty().NotEqual(0).WithMessage(\"No puede estar vacío\");" + System.Environment.NewLine + System.Environment.NewLine;
                 }
@@ -91,16 +91,6 @@
                 }
 
             }
-        }
-    }
-
-    private bool IsNumber(string FieldType){
-        switch(FieldType){
-            case "int": return true;
-            case "float": return true;
-            case "double": return true;
-            case "decimal": return true;
-            default: return false;
         }
     }
 
