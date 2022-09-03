@@ -1,0 +1,51 @@
+﻿@page "/components"
+
+<PageTitle>Development Utilities - Generate Components</PageTitle>
+
+<div class="d-flex justify-content-between">
+    <h1 class="m-0 p-0">Development Utilities - Generate Components</h1>
+    <div>
+        <button class="btn btn-outline-success" @onclick="@GenerateComponentsCode">Generate</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-4">
+        <label for="inputarea" class="form-label">Input</label>
+        <textarea @bind="@InputValue" id="inputarea" name="inputarea" style="resize: none; min-height: 70vh;" class="w-100 h-75 form-control"></textarea>
+    </div>
+    <div class="col-sm-8">
+        <label for="outputarea" class="form-label">Output</label>
+        <textarea readonly @bind="@OutputValue" id="outputarea" name="outputarea" style="resize: none; min-height: 70vh;" class="w-100 form-control"></textarea>
+    </div>
+</div>
+
+@code {
+    private string InputValue { get; set; } = String.Empty;
+    private string OutputValue { get; set; } = String.Empty;
+
+    private void GenerateComponentsCode()
+    {
+        OutputValue = String.Empty;
+        var result = EntityParserHelper.ParseEntityInput(InputValue);
+        if (result.Any())
+        {
+            foreach (var entry in result)
+            {
+                if (UtilitiesHelper.IsNumber(entry.Item1))
+                {
+                    OutputValue += $"<SfNumericTextBox Readonly=\"@(PageEditMode)\" ShowSpinButton=\"false\" CssClass=\"e-outline\" FloatLabelType=\"@FloatLabelType.Auto\" Placeholder=\"{entry.Item2}\" @bind-Value=\"@_model.{entry.Item2}\"></SfNumericTextBox>";
+                    OutputValue += System.Environment.NewLine + $"<ValidationMessage For=\"@(() => _model.{entry.Item2})\" />" + System.Environment.NewLine + System.Environment.NewLine;
+                }else if(entry.Item1.Equals("string"))
+                {
+                    OutputValue += $"<SfTextBox Readonly=\"@(PageEditMode)\" CssClass=\"e-outline\" FloatLabelType=\"@FloatLabelType.Auto\" Placeholder=\"{entry.Item2}\" @bind-Value=\"@_model.{entry.Item2}\"></SfTextBox>";
+                    OutputValue += System.Environment.NewLine + $"<ValidationMessage For=\"@(() => _model.{entry.Item2})\" />" + System.Environment.NewLine + System.Environment.NewLine;
+                }else if(entry.Item1.Equals("bool")){
+                    OutputValue += $"<SfCheckBox Label=\"{entry.Item2}\" @bind-Checked=\"@_model.{entry.Item2}\" Disabled=\"@(!PageEditMode)\" />" + System.Environment.NewLine + System.Environment.NewLine;
+                }
+
+            }
+        }
+    }
+
+}
