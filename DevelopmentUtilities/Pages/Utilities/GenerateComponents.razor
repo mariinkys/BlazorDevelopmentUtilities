@@ -16,13 +16,13 @@
             Incluir ReadOnly
         </label>
     </div>
-    @*<div class="mx-3"></div>
+    <div class="mx-3"></div>
     <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="wantsBtChk" @bind="@IncludeReadonly">
+        <input class="form-check-input" type="checkbox" id="wantsBtChk" @bind="@IncludeBootstrap">
         <label class="form-check-label" for="wantsBtChk">
             Generate Bootstrap
         </label>
-    </div>*@
+    </div>
 </div>
 
 <div class="row">
@@ -41,10 +41,11 @@
     private string OutputValue { get; set; } = String.Empty;
 
     private bool IncludeReadonly { get; set; } = true;
-    //private bool IncludeBootstrap { get; set; } = false;
+    private bool IncludeBootstrap { get; set; } = false;
 
     private string ReadOnlyText = "Readonly=\"@(!PageEditMode)\"";
     private string DisabledText = "Disabled=\"@(!PageEditMode)\"";
+    private string CheckboxMargin = " mt-4";
 
     private void GenerateComponentsCode()
     {
@@ -52,23 +53,44 @@
         var result = EntityParserHelper.ParseEntityInput(InputValue);
         if (result.Any())
         {
+            int totalTimesCounter = 0;
+            int counter = 1;
+
             foreach (var entry in result)
             {
+                totalTimesCounter++;
+
+                if (IncludeBootstrap && counter.Equals(1)) {
+                    OutputValue += "<div class=\"row\">" + System.Environment.NewLine;
+                }
+
+                if (IncludeBootstrap) OutputValue += $"\t<div class=\"col-sm-3{(entry.Item1.Equals("bool") ? CheckboxMargin : "")}\">" + System.Environment.NewLine;
+
                 if (UtilitiesHelper.IsNumber(entry.Item1))
                 {
-                    OutputValue += $"<SfNumericTextBox {(IncludeReadonly ? ReadOnlyText : String.Empty)} ShowSpinButton=\"false\" CssClass=\"e-outline\" FloatLabelType=\"@FloatLabelType.Auto\" Placeholder=\"{entry.Item2}\" @bind-Value=\"@_model.{entry.Item2}\"></SfNumericTextBox>";
-                    OutputValue += System.Environment.NewLine + $"<ValidationMessage For=\"@(() => _model.{entry.Item2})\" />" + System.Environment.NewLine + System.Environment.NewLine;
+                    OutputValue += (IncludeBootstrap ? "\t\t" : "") + $"<SfNumericTextBox {(IncludeReadonly ? ReadOnlyText : String.Empty)} ShowSpinButton=\"false\" CssClass=\"e-outline\" FloatLabelType=\"@FloatLabelType.Auto\" Placeholder=\"{entry.Item2}\" @bind-Value=\"@_model.{entry.Item2}\"></SfNumericTextBox>";
+                    OutputValue += System.Environment.NewLine + (IncludeBootstrap ? "\t\t" : "") + $"<ValidationMessage For=\"@(() => _model.{entry.Item2})\" />" + System.Environment.NewLine + (!IncludeBootstrap ? System.Environment.NewLine : "");
                 }
                 else if (entry.Item1.Equals("string"))
                 {
-                    OutputValue += $"<SfTextBox {(IncludeReadonly ? ReadOnlyText : String.Empty)} CssClass=\"e-outline\" FloatLabelType=\"@FloatLabelType.Auto\" Placeholder=\"{entry.Item2}\" @bind-Value=\"@_model.{entry.Item2}\"></SfTextBox>";
-                    OutputValue += System.Environment.NewLine + $"<ValidationMessage For=\"@(() => _model.{entry.Item2})\" />" + System.Environment.NewLine + System.Environment.NewLine;
+                    OutputValue += (IncludeBootstrap ? "\t\t" : "") + $"<SfTextBox {(IncludeReadonly ? ReadOnlyText : String.Empty)} CssClass=\"e-outline\" FloatLabelType=\"@FloatLabelType.Auto\" Placeholder=\"{entry.Item2}\" @bind-Value=\"@_model.{entry.Item2}\"></SfTextBox>";
+                    OutputValue += System.Environment.NewLine + (IncludeBootstrap ? "\t\t" : "") + $"<ValidationMessage For=\"@(() => _model.{entry.Item2})\" />" + System.Environment.NewLine + (!IncludeBootstrap ? System.Environment.NewLine : "");
                 }
                 else if (entry.Item1.Equals("bool"))
                 {
-                    OutputValue += $"<SfCheckBox Label=\"{entry.Item2}\" @bind-Checked=\"@_model.{entry.Item2}\" {(IncludeReadonly ? DisabledText : String.Empty)} />" + System.Environment.NewLine + System.Environment.NewLine;
+                    OutputValue += (IncludeBootstrap ? "\t\t" : "") + $"<SfCheckBox Label=\"{entry.Item2}\" @bind-Checked=\"@_model.{entry.Item2}\" {(IncludeReadonly ? DisabledText : String.Empty)} />" + System.Environment.NewLine + (!IncludeBootstrap ? System.Environment.NewLine : "");
                 }
-            
+
+                if (IncludeBootstrap) OutputValue += "\t</div>" + System.Environment.NewLine;
+
+                
+                if (IncludeBootstrap && (counter.Equals(4) || totalTimesCounter.Equals(result.Count())))
+                {
+                    OutputValue += "</div>" + System.Environment.NewLine;
+                    counter = 0;
+                }
+
+                counter++;
             }
         }
     }
