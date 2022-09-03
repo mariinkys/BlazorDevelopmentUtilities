@@ -9,6 +9,22 @@
     </div>
 </div>
 
+<div class="d-flex align-items-center mt-3">
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="wantsRoChk" @bind="@IncludeReadonly">
+        <label class="form-check-label" for="wantsRoChk">
+            Incluir ReadOnly
+        </label>
+    </div>
+    @*<div class="mx-3"></div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="wantsBtChk" @bind="@IncludeReadonly">
+        <label class="form-check-label" for="wantsBtChk">
+            Generate Bootstrap
+        </label>
+    </div>*@
+</div>
+
 <div class="row">
     <div class="col-sm-4">
         <label for="inputarea" class="form-label">Input</label>
@@ -24,6 +40,12 @@
     private string InputValue { get; set; } = String.Empty;
     private string OutputValue { get; set; } = String.Empty;
 
+    private bool IncludeReadonly { get; set; } = true;
+    //private bool IncludeBootstrap { get; set; } = false;
+
+    private string ReadOnlyText = "Readonly=\"@(!PageEditMode)\"";
+    private string DisabledText = "Disabled=\"@(!PageEditMode)\"";
+
     private void GenerateComponentsCode()
     {
         OutputValue = String.Empty;
@@ -34,16 +56,19 @@
             {
                 if (UtilitiesHelper.IsNumber(entry.Item1))
                 {
-                    OutputValue += $"<SfNumericTextBox Readonly=\"@(PageEditMode)\" ShowSpinButton=\"false\" CssClass=\"e-outline\" FloatLabelType=\"@FloatLabelType.Auto\" Placeholder=\"{entry.Item2}\" @bind-Value=\"@_model.{entry.Item2}\"></SfNumericTextBox>";
+                    OutputValue += $"<SfNumericTextBox {(IncludeReadonly ? ReadOnlyText : String.Empty)} ShowSpinButton=\"false\" CssClass=\"e-outline\" FloatLabelType=\"@FloatLabelType.Auto\" Placeholder=\"{entry.Item2}\" @bind-Value=\"@_model.{entry.Item2}\"></SfNumericTextBox>";
                     OutputValue += System.Environment.NewLine + $"<ValidationMessage For=\"@(() => _model.{entry.Item2})\" />" + System.Environment.NewLine + System.Environment.NewLine;
-                }else if(entry.Item1.Equals("string"))
-                {
-                    OutputValue += $"<SfTextBox Readonly=\"@(PageEditMode)\" CssClass=\"e-outline\" FloatLabelType=\"@FloatLabelType.Auto\" Placeholder=\"{entry.Item2}\" @bind-Value=\"@_model.{entry.Item2}\"></SfTextBox>";
-                    OutputValue += System.Environment.NewLine + $"<ValidationMessage For=\"@(() => _model.{entry.Item2})\" />" + System.Environment.NewLine + System.Environment.NewLine;
-                }else if(entry.Item1.Equals("bool")){
-                    OutputValue += $"<SfCheckBox Label=\"{entry.Item2}\" @bind-Checked=\"@_model.{entry.Item2}\" Disabled=\"@(!PageEditMode)\" />" + System.Environment.NewLine + System.Environment.NewLine;
                 }
-
+                else if (entry.Item1.Equals("string"))
+                {
+                    OutputValue += $"<SfTextBox {(IncludeReadonly ? ReadOnlyText : String.Empty)} CssClass=\"e-outline\" FloatLabelType=\"@FloatLabelType.Auto\" Placeholder=\"{entry.Item2}\" @bind-Value=\"@_model.{entry.Item2}\"></SfTextBox>";
+                    OutputValue += System.Environment.NewLine + $"<ValidationMessage For=\"@(() => _model.{entry.Item2})\" />" + System.Environment.NewLine + System.Environment.NewLine;
+                }
+                else if (entry.Item1.Equals("bool"))
+                {
+                    OutputValue += $"<SfCheckBox Label=\"{entry.Item2}\" @bind-Checked=\"@_model.{entry.Item2}\" {(IncludeReadonly ? DisabledText : String.Empty)} />" + System.Environment.NewLine + System.Environment.NewLine;
+                }
+            
             }
         }
     }
