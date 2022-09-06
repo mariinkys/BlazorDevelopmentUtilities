@@ -73,7 +73,7 @@
                 if(WantsStrings && entry.Item1.Equals("string")){
 
                     OutputValue += $"RuleFor(p => p.{entry.Item2})" + System.Environment.NewLine
-                            + "\t.NotNull().NotEmpty().WithMessage(\"No puede estar vacío\");" + System.Environment.NewLine;
+                            + "\t.NotNull().NotEmpty().WithMessage(\"No puede estar vacío\")" + (!WantsStringMaxLength?";":"") + System.Environment.NewLine;
 
                     if(!WantsStringMaxLength){
 
